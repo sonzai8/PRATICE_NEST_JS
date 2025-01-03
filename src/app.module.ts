@@ -13,6 +13,8 @@ import {OrdersModule} from "@/modules/orders/Orders.module";
 import {OrderDetailModule} from "@/modules/order.detail/order.detail.module";
 import {MenusModule} from "@/modules/menus/menus.module";
 import {ReviewsModule} from "@/modules/reviews/reviews.module";
+import {AuthModule} from "@/auth/auth.module";
+
 @Module({
   imports: [
     UsersModule,
@@ -24,6 +26,7 @@ import {ReviewsModule} from "@/modules/reviews/reviews.module";
     OrdersModule,
     RestaurantsModule,
     ReviewsModule,
+    AuthModule,
     ConfigModule.forRoot({isGlobal: true}),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -31,7 +34,8 @@ import {ReviewsModule} from "@/modules/reviews/reviews.module";
         uri: configService.get<string>('MONGODB_URI'),
       }),
       inject: [ConfigService],
-    })],
+    }),
+    ],
 
   controllers: [AppController],
   providers: [AppService],

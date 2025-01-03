@@ -1,7 +1,7 @@
 import {BadRequestException, HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
 import {User} from "@/modules/users/schemas/user.schema";
-import {Model} from "mongoose";
+import mongoose, {Model} from "mongoose";
 import {UpdateUserDto} from "@/modules/users/dto/update-user.dto";
 import {CreateUserDto} from "@/modules/users/dto/create-user.dto";
 import {hashPasswordHelper} from "@/helpers/util";
@@ -14,10 +14,8 @@ export class UsersService {
 
    isEmailExist = async (email: string) => {
      const isExist = await this.userModel.exists({email});
-     if(isExist) {
-       return true;
-     }
-     return false;
+     return !!isExist;
+
    }
   async create(createUserDto: CreateUserDto) {
      const { name, email, password } = createUserDto;
@@ -54,17 +52,27 @@ export class UsersService {
     return {totalPage, results}
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
+      const checkId = mongoose.isValidObjectId(id)
+      if(!checkId) throw new BadRequestException('not valid mongodb id');
+
     const user = this.userModel.findOne({_id: id})
     if(!user) return null;
 
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+    async findByEmail(email: string) {
+        return this.userModel.findOne({email: email});
+    }
+
+  async update( updateUserDto: UpdateUserDto) {
+    return this.userModel.updateOne({_id: updateUserDto._id}, {...updateUserDto});
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+       const checkId = mongoose.isValidObjectId(id)
+      if(!checkId) throw new BadRequestException('not valid mongodb id');
+
+      return this.userModel.deleteOne({_id: id});
   }
 }

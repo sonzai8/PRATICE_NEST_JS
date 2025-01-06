@@ -7,6 +7,10 @@ import {CreateUserDto} from "@/modules/users/dto/create-user.dto";
 import {hashPasswordHelper} from "@/helpers/util";
 import aqp from 'api-query-params';
 import {request} from "express";
+import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
+import { v4 as uuidv4 } from 'uuid';
+import dayjs from 'dayjs';
+
 
 @Injectable()
 export class UsersService {
@@ -16,6 +20,29 @@ export class UsersService {
      const isExist = await this.userModel.exists({email});
      return !!isExist;
 
+   }
+   async handleRegister(createAuthDto: CreateAuthDto) {
+     const {name, email, password} = createAuthDto;
+     const isExist = await this.isEmailExist(email);
+     if (isExist) {
+       throw new BadRequestException(`Email already exists: ${email}`);
+     }
+     const hashPassword = await hashPasswordHelper(password);
+
+     const user = await this.userModel.create({
+       name, email, password: hashPassword,
+       isActive: false,
+       codeId: uuidv4(),
+       codeExpired: dayjs().add(1, 'days')
+     })
+
+     //tra ra phan hoi
+     return {
+       _id: user._id
+     }
+
+
+     //send email
    }
   async create(createUserDto: CreateUserDto) {
      const { name, email, password } = createUserDto;
